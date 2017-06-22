@@ -16,8 +16,8 @@ fn main() {
     println!("two: {:?}", two);
     println!("two: {}", two);
 
-    let three = List2::new_list(vec![1,2,3]);
-    println!("three: {}", three);
+    // let three = List2::new_list(vec![1,2,3]);
+    // println!("three: {}", three);
 
 }
 
