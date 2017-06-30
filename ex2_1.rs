@@ -17,10 +17,10 @@ fn suffixes<T>(list: List3<T>) -> List3<List3<T>>{
 
 
 #[derive(Debug)]
-struct List3<T> ( Rc<List3Cons<T>> );
+struct List3<T> ( Rc<List3Segment<T>> );
 
 #[derive(Debug)]
-enum List3Cons<T> {
+enum List3Segment<T> {
     Cons(T, List3<T>),
     Nil,
 }
@@ -33,11 +33,11 @@ impl<T> List3<T> {
     }
 
     fn cons(x: T, list: List3<T>) -> List3<T> {
-        List3(Rc::new(List3Cons::Cons(x, list)))
+        List3(Rc::new(List3Segment::Cons(x, list)))
     }
 
     fn nil() -> List3<T> {
-        List3(Rc::new(List3Cons::Nil))
+        List3(Rc::new(List3Segment::Nil))
     }
 }
 
@@ -47,11 +47,11 @@ impl<T> fmt::Display for List3<T> where T : fmt::Display {
         match self {
             &List3(ref cons_rc) =>
                 match **cons_rc {
-                    List3Cons::Cons(ref hd, ref tl) => {
+                    List3Segment::Cons(ref hd, ref tl) => {
                         let _ = write!(f, "({hd}, ", hd = hd);
                         write!(f, "{tl})", tl = tl)
                     }
-                    List3Cons::Nil => write!(f, "Nil")
+                    List3Segment::Nil => write!(f, "Nil")
                 }
         }
     }
