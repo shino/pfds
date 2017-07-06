@@ -13,7 +13,7 @@ fn main() {
     let list = List3::new_list(&vec);
     println!("list: {}", list);
 
-    let suffixes = suffixes(list);
+    let suffixes = suffixes(&list, List3::nil());
     println!("suffixes: {}", suffixes);
     println!("suffixes: {:?}", suffixes);
 
@@ -33,8 +33,17 @@ fn main() {
 
 }
 
-fn suffixes<T>(list: List3<T>) -> List3<List3<T>>{
-    List3::<List3<T>>::cons(list, List3::nil())
+fn suffixes<T>(list: &List3<T>, acc: List3<List3<T>>) -> List3<List3<T>>{
+    match list {
+        &List3(ref rc_cons) =>
+            match **rc_cons {
+                List3Segment::Nil =>
+                    acc,
+                List3Segment::Cons(ref hd, ref tl) =>
+                    suffixes(tl, *List3::cons(tl, acc))
+            }
+    }
+    // List3::<List3<T>>::cons(list, List3::nil())
 }
 
 
@@ -47,7 +56,7 @@ enum List3Segment<T> {
     Nil,
 }
 
-impl<T> List3<T> {
+impl<T : fmt::Display> List3<T> {
     fn new_list(xs: &Vec<T>) -> List3<&T> {
         xs.iter().fold(List3::nil(), |list, r| {
             List3::cons(r, list)
@@ -95,33 +104,44 @@ impl<T> List3<T> {
     fn nil() -> List3<T> {
         List3(Rc::new(List3Segment::Nil))
     }
+
 }
 
 
 impl<T> fmt::Display for List3<T> where T : fmt::Display {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // TODO: Want to use foldl and closure, but does not work.
+        // ```
         // error[E0281]: type mismatch: the type `[closure@ex2_1.rs:104:29: 104:71 f:_]`
-        // implements the trait `std::ops::Fn<(_, _)>`, but the trait
-        // `for<'r> std::ops::Fn<(&'r T, ())>` is required (expected concrete lifetime,
-        // found bound lifetime parameter )
+        // implements the trait         `std::ops::Fn<(_,     _ )>`,
+        // but the trait        `for<'r> std::ops::Fn<(&'r T, ())>` is required
+        // (expected concrete lifetime, found bound lifetime parameter )
         //
-        // let _ = write!(f, "["]);
+        // let _ = write!(f, "[");
         // {
         //     let write_one = |x, acc| { let _ = write!(f, "{}, ", x); };
-        //     self.foldl((), write_one);
+        //     <List3<T>>::foldl((), write_one, self);
         // }
         // write!(f, "]")
 
-        match self {
-            &List3(ref cons_rc) =>
-                match **cons_rc {
-                    List3Segment::Cons(ref hd, ref tl) => {
-                        let _ = write!(f, "({hd}, ", hd = hd);
-                        write!(f, "{tl})", tl = tl)
+        let _ = write!(f, "[");
+        let mut sublist = self;
+        loop {
+            match sublist {
+                &List3(ref rc_cons) =>
+                    // rc_cons : &std::rc::Rc<List3Segment<T>>
+                    match **rc_cons {
+                        List3Segment::Nil =>
+                            break,
+                        List3Segment::Cons(ref hd, ref tl) => {
+                            let _ = write!(f, "{}, ", hd);
+                            sublist = tl;
+                        }
                     }
-                    List3Segment::Nil => write!(f, "Nil")
-                }
+            }
         }
+        write!(f, "]")
     }
+
+
 }
